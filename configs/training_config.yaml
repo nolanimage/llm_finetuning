@@ -1,0 +1,77 @@
+# Training Configuration for ChatGLM3 Fine-tuning
+# This configuration file controls all aspects of the training process
+
+# Model Configuration
+model:
+  name: "THUDM/chatglm3-6b"
+  cache_dir: "./cache"
+  trust_remote_code: true
+  torch_dtype: "float16"  # float16 for MPS compatibility
+  low_cpu_mem_usage: true
+
+# LoRA Configuration
+lora:
+  enabled: true
+  r: 4  # Rank (4 for stability, 8 for quality, 16 for maximum - may cause gradient explosion)
+  lora_alpha: 8  # Scaling factor (typically 2x rank)
+  lora_dropout: 0.1
+  target_modules:
+    - "query_key_value"
+    - "dense"
+    - "dense_h_to_4h"
+    - "dense_4h_to_h"
+  task_type: "CAUSAL_LM"
+  inference_mode: false
+
+# Data Configuration
+data:
+  train_file: "data/chinese_wiki_5000.jsonl"
+  max_length: 96  # Sequence length (64 for speed, 96 for balance, 128 for quality - may cause issues)
+  truncation: true
+  padding: true
+  test_size: 0.1  # Validation split
+
+# Training Arguments
+training:
+  output_dir: "./outputs/chatglm3_finetuned"
+  num_train_epochs: 4
+  per_device_train_batch_size: 2
+  per_device_eval_batch_size: 2
+  gradient_accumulation_steps: 2
+  learning_rate: 2e-3  # Constant learning rate (proven to work better than decay)
+  lr_scheduler_type: "constant"  # constant, linear, cosine
+  warmup_steps: 0  # No warmup for constant LR
+  weight_decay: 0.01
+  max_grad_norm: 1.0  # Gradient clipping for stability
+  
+  # Logging and Saving
+  logging_steps: 5
+  save_steps: 50
+  save_strategy: "steps"
+  eval_steps: 50
+  evaluation_strategy: "steps"
+  save_total_limit: 3  # Keep only last 3 checkpoints
+  
+  # Device Configuration (MPS/Apple Silicon)
+  fp16: false  # Disable for MPS
+  bf16: false  # Disable for MPS
+  dataloader_pin_memory: false  # Disable for MPS
+  dataloader_num_workers: 0  # No multiprocessing on MPS
+  
+  # Other
+  load_best_model_at_end: true
+  metric_for_best_model: "eval_loss"
+  greater_is_better: false
+  report_to: []  # ["wandb"] if using Weights & Biases
+
+# Device Configuration
+device:
+  auto_detect: true
+  force_cpu: false
+  force_mps: false
+
+# Monitoring
+monitoring:
+  use_wandb: false
+  use_tensorboard: true
+  log_dir: "./logs"

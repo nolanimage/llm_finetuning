@@ -1,0 +1,56 @@
+# Default configuration for fine-tuning
+
+# Model configuration
+model:
+  name: "bert-base-uncased"  # Default model
+  max_length: 512
+  num_labels: 2  # For classification tasks
+
+# Training configuration
+training:
+  epochs: 3
+  batch_size: 8
+  learning_rate: 2e-5
+  weight_decay: 0.01
+  warmup_steps: 100
+  save_steps: 500
+  eval_steps: 500
+  gradient_accumulation_steps: 1
+
+# LoRA configuration (for efficient fine-tuning)
+lora:
+  enabled: false
+  r: 16
+  lora_alpha: 32
+  lora_dropout: 0.1
+  target_modules: ["q_proj", "v_proj", "k_proj", "o_proj"]
+
+# Data configuration
+data:
+  test_size: 0.2
+  max_length: 512
+  num_workers: 0  # Optimized for Mac
+
+# Output configuration
+output:
+  dir: "./outputs"
+  save_best_model: true
+  save_final_model: true
+
+# Monitoring configuration
+monitoring:
+  use_wandb: false
+  use_tensorboard: true
+  log_steps: 10
+
+# Device configuration
+device:
+  auto_detect: true
+  force_cpu: false
+  force_mps: false
+
+# Mac-specific optimizations
+mac_optimizations:
+  enable_mps: true
+  memory_efficient: true
+  pin_memory: true 
