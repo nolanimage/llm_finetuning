@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  training:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: chatglm3_finetune
+    volumes:
+      # Mount data directory
+      - ./data:/app/data
+      # Mount outputs directory to persist trained models
+      - ./outputs:/app/outputs
+      # Mount cache directory to persist model cache
+      - ./cache:/app/cache
+      # Mount logs directory
+      - ./logs:/app/logs
+      # Mount configs directory
+      - ./configs:/app/configs
+    environment:
+      - PYTHONUNBUFFERED=1
+      - TRANSFORMERS_CACHE=/app/cache
+      - HF_HOME=/app/cache
+    # For GPU support, uncomment the following:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+    command: python train.py
+    restart: unless-stopped
+
+  # Optional: Inference service (if you want to serve the model)
+  # inference:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: chatglm3_inference
+  #   volumes:
+  #     - ./outputs:/app/outputs
+  #     - ./cache:/app/cache
+  #   ports:
+  #     - "8000:8000"
+  #   command: python inference.py --interactive
+  #   depends_on:
+  #     - training
